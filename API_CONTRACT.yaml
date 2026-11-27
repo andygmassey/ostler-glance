@@ -82,7 +82,7 @@ paths:
       description: >
         Text-in only. Chunks are ordered by seq within a session. The server
         may return a live_catch: a name/company/role spotted in this chunk
-        held on the card by the time they've finished their sentence (Day 2 hero).
+        held on the card by the time they've finished their sentence.
       requestBody:
         required: true
         content:
