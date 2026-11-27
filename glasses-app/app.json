@@ -1,0 +1,32 @@
+{
+  "package_id": "com.ostler.glance",
+  "edition": "202601",
+  "name": "Ostler Glance",
+  "version": "0.1.0",
+  "min_app_version": "2.2.10",
+  "min_sdk_version": "0.0.16",
+  "entrypoint": "index.html",
+  "permissions": [
+    {
+      "name": "network",
+      "desc": "Fetches recall cards and sends one-tap action confirmations to the owner's Ostler Glance backend (text only; no audio ever leaves the app).",
+      "whitelist": [
+        "http://localhost:8471"
+      ]
+    },
+    {
+      "name": "network",
+      "desc": "Streams tap-to-start microphone audio to the owner's Studio Whisper service for transcription; audio is transcribed and deleted, never stored.",
+      "whitelist": [
+        "http://localhost:8472"
+      ]
+    },
+    {
+      "name": "g2-microphone",
+      "desc": "Microphone access while the wearer has tapped to start transcription; capture is never always-on."
+    }
+  ],
+  "supported_languages": [
+    "en"
+  ]
+}

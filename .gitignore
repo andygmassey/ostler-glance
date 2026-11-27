@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.DS_Store
+__pycache__/
+*.ehpk
+out.ehpk
+logs/
+*.log
+.env
+.venv/
+AGENT_BRIEF.md
+docs/STRATEGIST_REVIEW.md
+docs/BUILDER_STATUS.md
+tunnel/

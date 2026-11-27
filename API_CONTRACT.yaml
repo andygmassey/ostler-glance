@@ -1,0 +1,371 @@
+openapi: 3.1.0
+info:
+  title: Ostler Glance Backend API
+  version: 0.1.0
+  description: >
+    Text-in HTTP API for the Ostler Glance G2 app (Even "Heads Up" hackathon,
+    23-29 Nov 2026). HARD RULE: this API carries text only. No raw audio, ever.
+    Speech-to-text is a client concern (Studio Whisper, streamed from the
+    WebView plugin); the backend receives transcript chunks. Pairing-code auth
+    (Google sign-in does not work in the WebView). All demo data is synthetic
+    and fictional (see FICTIONAL_WORLD.md).
+servers:
+  - url: https://{tunnel-host}
+    description: Studio-side service behind a tunnel; host is env-configured in the app (app.json whitelist).
+tags:
+  - name: auth
+  - name: capture
+  - name: memory
+  - name: recall
+  - name: act
+
+paths:
+  /v1/pair:
+    post:
+      tag: [auth]
+      summary: Exchange a pairing code for a bearer token.
+      description: >
+        The wearer enters a short pairing code shown by the Studio service
+        (or typed on the phone). One code, one device; codes expire quickly.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code: {type: string, example: "7391-2248"}
+      responses:
+        '200':
+          description: Paired.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/PairResponse'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '410': {$ref: '#/components/responses/CodeExpired'}
+
+  /v1/sessions:
+    post:
+      tags: [capture]
+      summary: Open a capture session (tap-to-start, never always-on).
+      description: >
+        One session = one capture window, normally one meeting. The client
+        shows a visible "Transcribing" cue for the whole session. The server
+        records nothing but the text chunks posted to /v1/transcript.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                source: {type: string, enum: [tap], description: "Only tap-to-start exists in the demo."}
+                event_id: {type: string, nullable: true, description: "Fictional calendar event this session belongs to, if known."}
+              required: [source]
+      responses:
+        '201':
+          description: Session opened.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [session_id, opened_at]
+                properties:
+                  session_id: {type: string, example: "ses_20261130T140001Z"}
+                  opened_at: {type: string, format: date-time}
+
+  /v1/transcript:
+    post:
+      tags: [capture]
+      summary: Post one chunk of STT text (client-side Whisper output).
+      description: >
+        Text-in only. Chunks are ordered by seq within a session. The server
+        may return a live_catch: a name/company/role spotted in this chunk
+        held on the card by the time they've finished their sentence (Day 2 hero).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [session_id, seq, text]
+              properties:
+                session_id: {type: string}
+                seq: {type: integer, minimum: 0}
+                at: {type: string, format: date-time}
+                text: {type: string, example: "Hi Henry, good to see you again — Eleanor Whitfield, Halcyon Summit."}
+      responses:
+        '202':
+          description: Chunk accepted.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accepted]
+                properties:
+                  accepted: {type: boolean, const: true}
+                  live_catch: {nullable: true, allOf: [$ref: '#/components/schemas/LiveCatch']}
+        '404': {$ref: '#/components/responses/NoSuchSession'}
+
+  /v1/sessions/{id}/close:
+    post:
+      tags: [memory]
+      summary: Close a session and farm the meeting artefacts + person cards.
+      description: >
+        One tap "done". The extraction model (local, via ollama — no cloud
+        model in the loop) turns the transcript into Ostler's
+        4 artefacts plus a promises list, keyed to the people in the session.
+        Nothing is retained server-side beyond what the owner's store needs.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        '200':
+          description: Artefacts farmed.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [session_id, meeting_id, artefact_set, people]
+                properties:
+                  session_id: {type: string}
+                  meeting_id: {type: string, example: "mtg_20261130_eleanor_checkin"}
+                  artefact_set: {$ref: '#/components/schemas/ArtefactSet'}
+                  people:
+                    type: array
+                    items: {$ref: '#/components/schemas/PersonRef'}
+        '404': {$ref: '#/components/responses/NoSuchSession'}
+
+  /v1/people/{id}/card:
+    get:
+      tags: [recall]
+      summary: Fetch one person's card.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        '200':
+          description: The card.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/PersonCard'}
+        '404': {$ref: '#/components/responses/NoSuchPerson'}
+
+  /v1/next-card:
+    get:
+      tags: [recall]
+      summary: Proactive recall card for the next fictional calendar event.
+      description: >
+        Zero-prompt: the server matches the next event's attendees against
+        people it knows and returns one card per person plus a suggested
+        opener. Demo recall triggers: calendar/event match and name-said only
+        (no voice print). 204 when there is no upcoming event or no known
+        attendees — the app shows its no-meeting state.
+      responses:
+        '200':
+          description: A card is ready.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/NextCard'}
+        '204':
+          description: No upcoming event, or no known attendees. No body.
+
+  /v1/actions/{id}/confirm:
+    post:
+      tags: [act]
+      summary: Confirm a one-tap action drafted on a card (e.g. send the follow-up email).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        '200':
+          description: Action completed (mock mode records it; real mode writes to Google).
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [action_id, status]
+                properties:
+                  action_id: {type: string}
+                  status: {type: string, enum: [completed, failed]}
+                  detail: {type: string, example: "Drafted email queued to the owner's Gmail (mock)."}
+        '404': {$ref: '#/components/responses/NoSuchAction'}
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: token
+
+  responses:
+    Unauthorized:
+      description: Bad or missing pairing token.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+    CodeExpired:
+      description: Pairing code expired or already used.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+    NoSuchSession:
+      description: Unknown session id.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+    NoSuchPerson:
+      description: Unknown person id.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+    NoSuchAction:
+      description: Unknown action id.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error: {type: string}
+        detail: {type: string}
+
+    PairResponse:
+      type: object
+      required: [token, expires_at]
+      properties:
+        token: {type: string, description: "Bearer token for all other endpoints."}
+        expires_at: {type: string, format: date-time}
+
+    LiveCatch:
+      type: object
+      required: [kind, text]
+      properties:
+        kind: {type: string, enum: [name, company, role, other]}
+        text: {type: string, example: "Eleanor Whitfield"}
+        confidence: {type: number, minimum: 0, maximum: 1}
+
+    Promise:
+      type: object
+      required: [id, who, direction, what, status]
+      properties:
+        id: {type: string, example: "pr_004"}
+        who: {type: string, description: "The other party's name (fictional)."}
+        direction: {type: string, enum: [owed_by_me, owed_to_me]}
+        what: {type: string, example: "Updated metrics deck"}
+        due: {type: string, format: date, nullable: true}
+        status: {type: string, enum: [open, done, cancelled]}
+        age_days: {type: integer, description: "Days since the promise was made."}
+        meeting_ref: {type: string, nullable: true}
+
+    Todo:
+      type: object
+      required: [id, text, status]
+      properties:
+        id: {type: string}
+        text: {type: string}
+        owner: {type: string, nullable: true}
+        due: {type: string, format: date, nullable: true}
+        status: {type: string, enum: [open, done]}
+        source: {type: string, description: "Where it came from, e.g. transcript or calendar."}
+
+    ArtefactSet:
+      type: object
+      description: Ostler's 4 artefacts plus a promises list.
+      required: [summary, to_dos, cleaned_transcript, details, promises]
+      properties:
+        summary: {type: string, description: "A few sentences, glanceable."}
+        to_dos:
+          type: array
+          items: {$ref: '#/components/schemas/Todo'}
+        cleaned_transcript: {type: string}
+        details: {type: string, description: "Ostler's details artefact: personal and relational details offered in the conversation."}
+        promises:
+          type: array
+          items: {$ref: '#/components/schemas/Promise'}
+
+    PersonRef:
+      type: object
+      required: [id, full_name]
+      properties:
+        id: {type: string, example: "per_eleanor_whitfield"}
+        full_name: {type: string}
+
+    Person:
+      type: object
+      required: [id, full_name, company, role]
+      properties:
+        id: {type: string}
+        full_name: {type: string}
+        company: {type: string}
+        role: {type: string}
+        where_met: {type: string, nullable: true}
+        met_at: {type: string, format: date, nullable: true}
+        personal_details:
+          type: array
+          items: {type: string}
+          description: "Details they offered; owner's private note level only."
+
+    Action:
+      type: object
+      required: [id, kind, label, status]
+      properties:
+        id: {type: string, example: "act_011"}
+        kind: {type: string, enum: [send_email, add_task, move_meeting]}
+        label: {type: string, example: "Send thank-you email"}
+        draft:
+          type: object
+          description: "Kind-specific payload (mock in demo mode)."
+          additionalProperties: true
+        status: {type: string, enum: [drafted, completed, failed]}
+
+    PersonCard:
+      type: object
+      required: [person, open_promises, actions, suggested_opener]
+      properties:
+        person: {$ref: '#/components/schemas/Person'}
+        last_meeting:
+          type: object
+          nullable: true
+          properties:
+            meeting_id: {type: string}
+            at: {type: string, format: date-time}
+            artefact_set: {$ref: '#/components/schemas/ArtefactSet'}
+        open_promises:
+          type: array
+          items: {$ref: '#/components/schemas/Promise'}
+        suggested_opener: {type: string, example: "Ask how the speaker rehearsals went."}
+        actions:
+          type: array
+          items: {$ref: '#/components/schemas/Action'}
+
+    NextCard:
+      type: object
+      required: [trigger, event, people]
+      properties:
+        trigger: {type: string, enum: [calendar_event, name_said]}
+        event:
+          type: object
+          required: [id, title, starts_at]
+          properties:
+            id: {type: string, example: "evt_halcyon_checkin"}
+            title: {type: string, example: "Halcyon Summit — speaker check-in"}
+            starts_at: {type: string, format: date-time}
+            location: {type: string, nullable: true}
+        people:
+          type: array
+          items: {$ref: '#/components/schemas/PersonCard'}
+        suggested_opener: {type: string}
+
+security:
+  - bearerAuth: []

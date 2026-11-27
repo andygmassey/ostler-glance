@@ -1,0 +1,27 @@
+Extract every promise or commitment made in this
+meeting transcript. Reply with ONLY a JSON array (it must be an array even
+if there is exactly one item), no prose, each item:
+{"promiser": <name>, "recipient": <name>, "what": <short deliverable>,
+"due": "YYYY-MM-DD"|null, "status": "open"|"done"}
+Rules:
+- promiser = who commits to deliver; recipient = who receives it. Use only
+  names from this attendee list: {attendees}.
+- Include conditional commitments too ("once X lands, I will Y"), with
+  their stated date.
+- Small promises (a coffee, an email, a confirmation) count.
+- Worked example. Transcript line: ELEANOR: I need the abstract from you
+  by the fourteenth. HENRY: You'll have it on the fourteenth. Correct
+  output item: {"promiser": "Henry Ashworth", "recipient": "Eleanor
+  Whitfield", "what": "Talk abstract", "due": "<meeting-date with day 14>",
+  "status": "open"}. Transcript line: ELEANOR: I'll get you the speaker
+  pass by the weekend. Correct output item: {"promiser": "Eleanor
+  Whitfield", "recipient": "Henry Ashworth", "what": "Speaker pass", "due":
+  "<the Saturday after the meeting date>", "status": "open"}. Notice the
+  speaker who says "I will" is the promiser; the deliverable goes to the
+  other person. Never put the same name in both fields.
+- Meeting date: {date} (a {weekday}). Resolve spoken dates to ISO: "by the fourteenth"
+  means {date} with day replaced; "by the weekend" means the Saturday
+  immediately after the meeting date; "next Tuesday" means the next
+  Tuesday after the meeting date. If genuinely ambiguous, use null.
+Transcript:
+{transcript}

@@ -1,0 +1,49 @@
+JAMES: Henry! Can you hear me alright? I'm in the studio, it's a bit echoey in here.
+
+HENRY: I can hear you fine. Is that a loom behind you?
+
+JAMES: Two of them. The big one's from a mill in Blackburn, 1962, still runs. I'm not supposed to be fixing it between calls but the shuttle was sticking. Sorry. Right — Ledger and Loom. You wanted to talk about the capture flow.
+
+HENRY: I did. Here's my situation. My clients forward me invoices, receipts, bits of paper, and I type them into systems. It's the most error-prone part of my week and I reckon it's the same for your customers.
+
+JAMES: It's the whole reason Ledger and Loom exists, honestly. Bookkeeping for small textile workshops. My aunt had a weaving studio in Leeds — she'd invoice people from a paper ledger, beautiful handwriting, absolutely no backups, and every quarter she'd lose a weekend re-typing it all into the tax software. I built the first version of L&L for her. She still complains about it, which I take as a good sign. She uses it daily.
+
+HENRY: And the workshops that use you now — what do they hate most?
+
+JAMES: Two things. The re-typing, obviously. And chasing. A workshop sends an invoice, the buyer pays late, and the weaver would rather re-warp a loom than write a chasing email. So L&L does the polite chasing automatically. That's our whole pitch, really: the software does the jobs nobody became a weaver to do.
+
+HENRY: Where I'd fit: I want my capture flow to read an invoice out loud — well, read it silently — and have the structured data just appear. Line items, totals, the buyer's details, due dates. If L&L can expose that, I stop typing forever.
+
+JAMES: We can expose it. We've got an API, it's young and it's a bit scruffy, but the sandbox is stable. I can give you sandbox keys so you can hit the test environment with your own invoices and see what comes out. Say — realistically — by next Tuesday? The eighteenth?
+
+HENRY: That would be great. Yes, please.
+
+JAMES: Done. And listen, don't build anything polished against it yet, the schema will move a bit, but the auth and the shape of an invoice won't. Test with the ugly thing first. I've been burned twice by partnerships that needed a lawyer before they needed a line of code. I don't do those anymore.
+
+HENRY: No lawyers, agree. Actually — while we're on the subject of ugly first versions. Do you have a pilot in mind? Because I do. My alterations guy. Marlow's Haberdashery, little shop, he's been doing invoices in an actual ledger book since before I was born. He'd be a brilliant test — grumpy, exact, and if it works for him it works for anyone.
+
+JAMES: [laughs] Grumpy and exact is my favourite kind of pilot. Yes — but I want to meet him properly, not just get forwarded an email. Can you introduce us? Set something up?
+
+HENRY: I can. I'll do it before the end of the month. Say I'll make the intro by the twenty-eighth, that gives me time to talk to him first — he's suspicious of anything with a battery.
+
+JAMES: By the twenty-eighth, brilliant. You talk to him, then the three of us have a call, and if he says the word "no" I accept it gracefully and buy you both lunch anyway.
+
+HENRY: Deal. What does the sandbox cover? Just invoices?
+
+JAMES: Invoices, customers, and the chasing schedule. Not payments — we don't touch money, we sit next to it. Which everyone in fintech says, I know, but in our case it's literally true, we don't have a payments licence and don't want one.
+
+HENRY: Sensible. And the keys — how do they arrive?
+
+JAMES: Email, from me, not from some no-reply address. If you get anything claiming to be L&L keys from a no-reply address, it's phishing, bin it. I'll send them Tuesday. Oh — and one favour back, while I remember. You know the Halcyon Summit people? Somebody at that conference last year had a stall near ours — textiles track, it was — and I never got their name. I'm doing a trade-show in the spring and I want to know if it's worth a stand.
+
+HENRY: I know the events director, Eleanor Whitfield. I can ask her about the textiles track when I see her.
+
+JAMES: Would you? No rush on that one — it's for the spring. The keys and the pilot are the two that matter. Everything else is springtime.
+
+HENRY: Keys by the eighteenth, intro to Marlow by the twenty-eighth, Eleanor's name in my back pocket for spring.
+
+JAMES: That's the lot. Now if you'll excuse me, the shuttle's sticking again and the dogs have decided the warp threads are a toy. Bruno! Leave it. — Sorry. Whippets. Two of them. Zero respect for textiles.
+
+HENRY: [laughs] Go save the loom. Talk Tuesday, James.
+
+JAMES: Talk Tuesday. And Henry — build the ugly version. The ugly version is how you know it's real.

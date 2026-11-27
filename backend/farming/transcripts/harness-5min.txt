@@ -1,0 +1,72 @@
+# HARNESS-ONLY fixture (~5 minutes of speech). NOT part of the fictional
+# canon in FICTIONAL_WORLD.md — it exists to test farming quality at judged
+# demo scale. Do not reference it in demos or docs.
+HENRY: Eleanor, thanks for making the time. I know programme week is chaos.
+
+ELEANOR: It is, but you're easy to fit in because you actually answer
+emails. Sit, sit. The main thing first: your abstract arrived on the
+twelfth, which means the programme went to print with your real title
+instead of the placeholder. I cannot tell you how rare that is.
+
+HENRY: I owed you that from the fourth, technically. It was two days late
+on a fourteen-day promise. I'm counting it as a win because it still made
+print.
+
+ELEANOR: Count it as a win. Now — the AV checklist I sent you. Have you
+read it? Honestly?
+
+HENRY: Honestly, yes. Laptop on the lectern, not the clicker, because the
+Stage B clicker is cursed. Test the screen offset at the rehearsal. The
+screen sits to the left of the lectern and it throws first-timers.
+
+ELEANOR: You've read it properly. Good. The rehearsal is Wednesday at six,
+and I do want you there, because last year a speaker showed up on the day,
+looked at the offset screen, and froze for forty seconds. Forty seconds is
+a lifetime on stage. I had to walk up and make a joke about the projector.
+
+HENRY: I'll be there at six sharp. And I'll bring the slides on a memory
+stick as well as the laptop, like the checklist says.
+
+ELEANOR: Two copies. You learn. Right — the dinner seating. You're on the
+speaker table, seat seven, between the smart-lockers sponsor and a
+journalist from a wearable-tech blog. She asked specifically to sit near
+you, actually. Something about your talk title. I said I'd confirm you'd
+be willing to chat.
+
+HENRY: Happy to. That's the one conversation at dinner I'll actually
+remember having.
+
+ELEANOR: [laughs] Then also — the 10K. I'm running it the weekend after
+the conference, my first one since the knee thing, and race pack
+collection is Friday at the pop-up office. Could you grab mine when you're
+in for the check-in? It's one less queue for me on Saturday morning, and
+I'll owe you a coffee. A decent one, not the venue stuff.
+
+HENRY: Done. Race pack Friday, coffee owed by you, seat seven Wednesday
+evening at six, two copies of everything. I'll send you a one-line
+confirmation tonight so it's in writing.
+
+ELEANOR: In writing, yes, you and your records. One more thing — Imogen
+Rahman from last year's committee asked after you. Not romantically,
+before your face does that thing. She wants a speaker for a panel in
+February, women in hardware, and I told her you might know two or three
+names from your client list. Would you send her a couple of suggestions?
+
+HENRY: I can do that. Send me her email and I'll have three names for her
+by the end of the month. Actually — the thirtieth. Let me say the thirtieth
+so I don't weasel out of it.
+
+ELEANOR: The thirtieth, wonderful. That's the lot, then. Programme,
+rehearsal, dinner, race pack, Imogen's panel. You collect things, Henry.
+
+HENRY: I collect promises, apparently. That's rather the point of my talk.
+
+ELEANOR: Then practise what you preach. See you Wednesday at six — no,
+see you Friday for the race pack, and Wednesday for the rehearsal, in that
+order somehow.
+
+HENRY: Wednesday then Friday. Send me Imogen's email. And good luck with
+the knee.
+
+ELEANOR: The knee and I have an understanding. Out. I have a run-of-show
+to finish.
