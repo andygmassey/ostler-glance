@@ -8,6 +8,16 @@ meeting, and recall it the next time you meet them.
 
 "Names are everyone's nemesis. Ostler Glance never forgets one."
 
+## The demo (frames from the recorded video)
+
+Live catch of a first meeting, held on screen:
+
+![Caught name: Harriet Vale — a first meeting, caught mid-introduction](shots/catch-harriet-vale.png)
+
+The promise ledger — what you owe, how long it's been open:
+
+![Promise ledger: "you owe: Talk abstract (23d)"](shots/promise-ledger.png)
+
 ## Architecture (this week)
 
 - `glasses-app/` — G2 app (Even Hub SDK, TypeScript, Vite), scaffolded from

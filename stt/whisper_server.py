@@ -34,8 +34,8 @@ CHUNK_PROMPT = os.environ.get("STT_CHUNK_PROMPT", "on") == "on"
 
 INITIAL_PROMPT = (
     "A business meeting between Henry Ashworth and colleagues. "
-    "Names: Eleanor Whitfield, James Hardwick, Rachel Fenwick. "
-    "Companies: Halcyon Summit, Ledger and Loom, Cormorant Capital."
+    "Names: Eleanor Whitfield, James Hardwick, Rachel Fenwick, Harriet Vale. "
+    "Companies: Halcyon Summit, Ledger and Loom, Cormorant Capital, the Courier."
 )
 
 
