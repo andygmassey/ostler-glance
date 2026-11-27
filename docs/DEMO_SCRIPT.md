@@ -28,14 +28,14 @@ contact."
 Caption: "Caught before the sentence ends."
 
 **0:55–1:40 — The memory.**
-Screen: tap to end the capture; "Farmed." Cut to: Saturday morning, card
+Screen: tap to end the capture; "Capture ended — farmed." Cut to: the next morning, card
 for "Halcyon Summit — speaker check-in — Monday 30 November". Scroll to
 the promises ledger.
 Voice-over: "When the meeting ends, Ostler farms the record — what was
 said, what was agreed, who owes what. The next time you're about to walk
 into a room with someone, the card is already there. What you promised
 them. What they promised you. And how long ago."
-On screen: "→ you owe: Talk abstract (24d)".
+On screen: "→ you owe: Talk abstract (23d)".
 
 **1:40–2:20 — The act.**
 Screen: one tap — "Send abstract email" — confirm state "Done".
