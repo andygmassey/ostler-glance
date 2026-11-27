@@ -52,3 +52,10 @@ Built during the hackathon week (23–29 Nov 2026). Pre-existing tooling
 (ollama runtime, faster-whisper libraries, Even Hub SDK packages) is
 installed from public registries; all application code here was written
 during the week. Backend tests: `node --test` in `backend/`.
+
+## Rights
+
+Open repo — viewing for judging; all rights reserved. No open-source
+licence is granted, no licence file is included, and outside contributions
+are not accepted. All fictional people, companies and meetings are
+inventions; any resemblance to real persons or businesses is coincidental.
