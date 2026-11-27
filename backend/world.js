@@ -177,7 +177,9 @@ export const LIVE_CATCH_PATTERNS = [
   { kind: 'name', text: 'Eleanor Whitfield' },
   { kind: 'name', text: 'James Hardwick' },
   { kind: 'name', text: 'Rachel Fenwick' },
+  { kind: 'name', text: 'Harriet Vale' },
   { kind: 'company', text: 'Halcyon Summit' },
   { kind: 'company', text: 'Ledger & Loom' },
   { kind: 'company', text: 'Cormorant Capital' },
+  { kind: 'company', text: 'the Courier' },
 ]

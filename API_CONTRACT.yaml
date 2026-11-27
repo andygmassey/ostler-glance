@@ -94,7 +94,7 @@ paths:
                 session_id: {type: string}
                 seq: {type: integer, minimum: 0}
                 at: {type: string, format: date-time}
-                text: {type: string, example: "Hi Henry, good to see you again — Eleanor Whitfield, Halcyon Summit."}
+                text: {type: string, example: "Hi — Harriet Vale, I write for the Courier. I'm covering the Halcyon Summit speaker programme."}
       responses:
         '202':
           description: Chunk accepted.

@@ -47,6 +47,12 @@ against it. Every demo, test, and screenshot uses ONLY these names.
 Halcyon Summit pop-up office, Central (fictional address). This event powers
 the Day 4 zero-prompt recall card (`GET /v1/next-card`).
 
+## Video-only cast note
+
+- **Harriet Vale** — journalist at *the Courier* (both fictional). She
+  appears only in the demo video's cold-open: the live catch of a true
+  first meeting. She is not part of Henry's calendar or promise ledger.
+
 ## Recall triggers used in the demo
 
 1. Calendar/event match (attendee = known person).
