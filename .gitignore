@@ -20,3 +20,5 @@ docs/.poll_marker
 docs/TASKS.md
 docs/v2_captions.txt
 docs/v2-ui/
+docs/gen_audio.py
+docs/a5_diff.py
