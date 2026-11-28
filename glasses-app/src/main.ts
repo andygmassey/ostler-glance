@@ -2,14 +2,28 @@ import {
   waitForEvenAppBridge,
   TextContainerProperty,
   CreateStartUpPageContainer,
-  TextContainerUpgrade,
   OsEventTypeList,
 } from '@evenrealities/even_hub_sdk'
+import {
+  Display,
+  sectionLabel,
+  name28,
+  line16,
+  promise18,
+  right14,
+  opener14,
+  hint12,
+  divider,
+  cue,
+  CONTENT_W,
+} from './display'
 
-// Ostler Glance — Day 2: live capture. The mic streams PCM from the
+// Ostler Glance — live capture. The mic streams PCM from the
 // WebView plugin to the Studio Whisper service; only text ever reaches the
 // backend (contract v0.1, text-in only). Audio chunks live in memory and
 // are released the moment they are posted — never written anywhere.
+// v2: screens render as dithered bitmaps (display.ts) — the SDK text
+// container offers one font and a brightness byte, not a design language.
 
 const API_BASE: string = import.meta.env.VITE_API_BASE ?? 'http://localhost:8471'
 const STT_BASE: string = import.meta.env.VITE_STT_BASE ?? 'http://localhost:8472'
@@ -18,6 +32,7 @@ const PAIR_CODE: string = import.meta.env.VITE_PAIR_CODE ?? '7391-2248'
 const CHUNK_BYTES = 112000
 
 const bridge = await waitForEvenAppBridge()
+const display = new Display(bridge)
 
 async function api(method: string, path: string, body?: unknown, retried = false): Promise<any> {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -58,14 +73,6 @@ let token: string | null = null
 let card: any = null
 let busy = false
 
-function show(content: string) {
-  return bridge.textContainerUpgrade(
-    new TextContainerUpgrade({ containerID: 1, containerName: 'main', content }),
-  )
-}
-
-const EXIT_HINT = '\n2× tap: exit'
-
 // ---------- capture state (audio lives here, in memory only) ----------
 let capturing = false
 let audioParts: Uint8Array[] = []
@@ -74,12 +81,15 @@ let captureSessionId: string | null = null
 let transcriptSeq = 0
 let lastCatch: { kind: string; text: string } | null = null
 let capturedChunks = 0
+let pulse = false
+let pulseTimer: number | undefined
 
-function cueText(extra = ''): string {
-  const lines = ['Transcribing…']
-  if (lastCatch) lines.push(`Caught ${lastCatch.kind}: ${lastCatch.text}`)
-  lines.push('Tap: stop')
-  return lines.join('\n') + (extra ? '\n' + extra : '') + EXIT_HINT
+function cuePaint(extra: (ctx: CanvasRenderingContext2D) => void) {
+  return (ctx: CanvasRenderingContext2D) => {
+    cue(ctx, pulse ? 1 : 0)
+    extra(ctx)
+    hint12(ctx, 'Tap: stop · 2× tap: exit', 252)
+  }
 }
 
 function pcmBytes(pcm: any): Uint8Array {
@@ -94,8 +104,19 @@ function pcmBytes(pcm: any): Uint8Array {
   return new Uint8Array(0)
 }
 
-async function flushChunk() {
+// Flushes are chained, never concurrent: each run snapshots the session id
+// before its first await, so a stopCapture mid-flight can't null it out
+// from under a transcript post (that race 404'd the backend).
+let flushQueue: Promise<void> = Promise.resolve()
+
+function flushChunk() {
   if (!capturing || audioLen === 0 || !captureSessionId) return
+  flushQueue = flushQueue.then(doFlush)
+}
+
+async function doFlush() {
+  if (audioLen === 0) return
+  const sessionId = captureSessionId
   const merged = new Uint8Array(audioLen)
   let off = 0
   for (const part of audioParts) {
@@ -104,27 +125,105 @@ async function flushChunk() {
   }
   audioParts = [] // released: the buffer is not retained after posting
   audioLen = 0
+  if (!sessionId) return
   const seq = transcriptSeq++
   try {
-    const stt = await postSttChunk(captureSessionId, seq, merged)
+    const stt = await postSttChunk(sessionId, seq, merged)
     capturedChunks += 1
     if (stt.text) {
       const t = await api('POST', '/v1/transcript', {
-        session_id: captureSessionId,
+        session_id: sessionId,
         seq,
         text: stt.text,
       })
       if (t.live_catch) lastCatch = t.live_catch
     }
-    if (capturing) await show(cueText())
+    if (capturing) await paintCapturing()
   } catch (err) {
-    console.log('chunk failed:', err)
+    console.log('chunk failed:', err, 'session:', sessionId, 'seq:', seq)
   }
 }
 
 // ---------- view state machine: card → capturing → post-capture → done ----------
 type View = 'card' | 'capturing' | 'post-capture' | 'done'
 let view: View = 'card'
+let cardPage = 0
+
+function fit(ctx: CanvasRenderingContext2D, text: string, maxW: number): string {
+  if (ctx.measureText(text).width <= maxW) return text
+  let t = text
+  while (t.length > 1 && ctx.measureText(t + '…').width > maxW) t = t.slice(0, -1)
+  return t + '…'
+}
+
+function fmtDay(iso: string): string {
+  const d = new Date(iso)
+  return `${d.getDate()} ${d.toLocaleString('en-GB', { month: 'short' }).toUpperCase()}`
+}
+
+function arrowOf(pr: any): string {
+  return pr.direction === 'owed_by_me' ? '→ you owe:' : '← they owe:'
+}
+
+function cardGlancePaint(c: any) {
+  return (ctx: CanvasRenderingContext2D) => {
+    const p = c.people[0]
+    const when = c.event ? ` — ${fmtDay(c.event.starts_at)}` : ''
+    sectionLabel(ctx, `Coming up${when}`, 16)
+    name28(ctx, p.person.full_name, 36)
+    line16(ctx, `${p.person.role} · ${p.person.company}`, 76)
+    const top = p.open_promises.find((pr: any) => pr.direction === 'owed_by_me')
+      ?? p.open_promises[0]
+    if (top) {
+      promise18(ctx, arrowOf(top), fit(ctx, top.what, CONTENT_W - 120), 124)
+      right14(ctx, `${top.age_days}d`, 127)
+    }
+    divider(ctx, 168)
+    opener14(ctx, fit(ctx, `Opener: ${p.suggested_opener}`, CONTENT_W), 184)
+    hint12(ctx, 'Tap: transcribe · Scroll: promises · 2× tap: exit', 252)
+  }
+}
+
+function cardLedgerPaint(c: any) {
+  return (ctx: CanvasRenderingContext2D) => {
+    const p = c.people[0]
+    const first = p.person.full_name.split(' ')[0]
+    sectionLabel(ctx, `Promises — ${first}`, 16)
+    const rows = p.open_promises.slice(0, 4)
+    const rowH = 48
+    rows.forEach((pr: any, i: number) => {
+      const y = 44 + i * rowH
+      promise18(ctx, arrowOf(pr), fit(ctx, pr.what, CONTENT_W - 150), y)
+      // Ledger rows carry absolute dates only (design spec).
+      right14(ctx, pr.due ? `DUE ${fmtDay(pr.due)}` : `MADE ${fmtDay(pr.made_at)}`, y + 3)
+      if (i < rows.length - 1) divider(ctx, y + rowH - 12)
+    })
+    if (rows.length === 0) line16(ctx, 'Nothing open. Clean slate.', 44)
+    hint12(ctx, 'Scroll: back · 2× tap: exit', 252)
+  }
+}
+
+async function paintCard() {
+  if (!card) {
+    await display.render((ctx) => {
+      sectionLabel(ctx, 'Ostler Glance', 16)
+      name28(ctx, 'No upcoming meetings', 36)
+      hint12(ctx, '2× tap: exit', 252)
+    })
+    return
+  }
+  await display.render(cardPage === 0 ? cardGlancePaint(card) : cardLedgerPaint(card))
+}
+
+function paintCapturing() {
+  return display.render(cuePaint((ctx) => {
+    if (lastCatch) {
+      line16(ctx, `Caught ${lastCatch.kind}:`, 60, 0.6)
+      // The catch is the hero: name at 28px semibold, held on screen.
+      name28(ctx, fit(ctx, lastCatch.text, CONTENT_W), 84)
+    }
+  }))
+}
 
 async function startCapture() {
   if (busy || capturing) return
@@ -144,10 +243,14 @@ async function startCapture() {
     window.clearTimeout(micTimer)
     console.log('audioControl returned:', mic)
     if (!mic) {
-      await show('Mic unavailable\nTap: try again' + EXIT_HINT)
+      await display.render((ctx) => {
+        name28(ctx, 'Mic unavailable', 36)
+        hint12(ctx, 'Tap: try again · 2× tap: exit', 252)
+      })
       return
     }
     const s = await api('POST', '/v1/sessions', { source: 'tap' })
+    console.log('session created:', JSON.stringify(s))
     capturing = true
     view = 'capturing'
     captureSessionId = s.session_id
@@ -156,9 +259,22 @@ async function startCapture() {
     lastCatch = null
     audioParts = []
     audioLen = 0
-    await show(cueText())
+    pulseTimer = window.setInterval(() => {
+      pulse = !pulse
+      // Only the top-left tile holds the cue dot.
+      display.render(cuePaint((ctx) => {
+        if (lastCatch) {
+          line16(ctx, `Caught ${lastCatch.kind}:`, 60, 0.6)
+          name28(ctx, fit(ctx, lastCatch.text, CONTENT_W), 84)
+        }
+      }), 1).catch(() => {})
+    }, 450)
+    await paintCapturing()
   } catch (err) {
-    await show('Capture failed to start\nTap: try again' + EXIT_HINT)
+    await display.render((ctx) => {
+      name28(ctx, 'Capture failed to start', 36)
+      hint12(ctx, 'Tap: try again · 2× tap: exit', 252)
+    })
   } finally {
     busy = false
   }
@@ -167,15 +283,18 @@ async function startCapture() {
 async function stopCapture() {
   if (!capturing) return
   capturing = false
+  window.clearInterval(pulseTimer)
   try {
     await bridge.audioControl(false)
   } catch {}
-  await flushChunk()
-  await show(
-    `Capture ended\n${capturedChunks} windows transcribed` +
-      (lastCatch ? `\nLast catch: ${lastCatch.text}` : '') +
-      '\nTap: send follow-up' + EXIT_HINT,
-  )
+  flushChunk()
+  await flushQueue
+  await display.render((ctx) => {
+    name28(ctx, 'Farmed.', 40)
+    line16(ctx, `${capturedChunks} windows transcribed`, 84)
+    if (lastCatch) promise18(ctx, 'Last catch:', lastCatch.text, 124)
+    hint12(ctx, 'Tap: send follow-up · 2× tap: exit', 252)
+  })
   view = 'post-capture'
   captureSessionId = null
 }
@@ -191,45 +310,22 @@ window.addEventListener('focus', () => {
   if (capturing) bridge.audioControl(true).then(ok => console.log('re-armed mic:', ok))
 })
 
-// ---------- card (recall + one-tap action, Day 1; glance pages, Day 4) ----------
-let cardPage = 0
-
-function promiseLine(pr: any): string {
-  const arrow = pr.direction === 'owed_by_me' ? '→ you owe' : '← they owe'
-  return `${arrow}: ${pr.what} (${pr.age_days}d)`
-}
-
-function cardText(c: any, page: number): string {
-  const p = c.people[0]
-  if (page === 1) {
-    // Ledger page: every open promise with this person.
-    const lines = [`Promises: ${p.person.full_name.split(' ')[0]}`]
-    for (const pr of p.open_promises.slice(0, 4)) lines.push(promiseLine(pr))
-    if (p.open_promises.length === 0) lines.push('Nothing open. Clean slate.')
-    lines.push('Scroll: back')
-    return lines.join('\n') + EXIT_HINT
-  }
-  // The glance: one thing — who they are, what you owe, how to open.
-  const lines = [`${p.person.full_name}`, `${p.person.role} · ${p.person.company}`]
-  const top = p.open_promises.find((pr: any) => pr.direction === 'owed_by_me')
-    ?? p.open_promises[0]
-  if (top) lines.push(promiseLine(top))
-  lines.push(`Opener: ${p.suggested_opener}`)
-  lines.push('Tap: transcribe · Scroll: promises')
-  return lines.join('\n') + EXIT_HINT
-}
-
 async function boot() {
   try {
+    await display.init()
     const pair = await api('POST', '/v1/pair', { code: PAIR_CODE })
     token = pair.token
     card = await api('GET', '/v1/next-card')
     cardPage = 0
     console.log('boot: card', card ? 'loaded' : 'empty (204)')
-    await show(card ? cardText(card, 0) : 'Ostler Glance\nTap: start transcribing' + EXIT_HINT)
+    await paintCard()
   } catch (err) {
     console.log('boot failed:', err)
-    await show(`Ostler Glance\nBackend unreachable\n(${API_BASE})` + EXIT_HINT)
+    await display.render((ctx) => {
+      sectionLabel(ctx, 'Ostler Glance', 16)
+      name28(ctx, 'Backend unreachable', 36)
+      hint12(ctx, 'Tap: retry · 2× tap: exit', 252)
+    })
   }
 }
 
@@ -241,7 +337,10 @@ async function confirmFirstAction() {
   const action = card.people[0].actions.find((a: any) => a.status === 'drafted')
   if (!action) {
     view = 'done'
-    await show('Nothing to send\nTap: back to card' + EXIT_HINT)
+    await display.render((ctx) => {
+      name28(ctx, 'Nothing to send', 36)
+      hint12(ctx, 'Tap: back to card · 2× tap: exit', 252)
+    })
     return
   }
   busy = true
@@ -249,9 +348,18 @@ async function confirmFirstAction() {
     const result = await api('POST', `/v1/actions/${action.id}/confirm`)
     action.status = result.status
     view = 'done'
-    await show(`Done: ${action.label}\n${result.detail}` + EXIT_HINT)
+    await display.render((ctx) => {
+      name28(ctx, 'Done', 40)
+      promise18(ctx, 'Sent:', fit(ctx, action.label, CONTENT_W - 80), 84)
+      line16(ctx, fit(ctx, result.detail, CONTENT_W), 116)
+      hint12(ctx, 'Tap: back to card · 2× tap: exit', 252)
+    })
   } catch {
-    await show(`Failed: ${action.label}\nTry again.` + EXIT_HINT)
+    await display.render((ctx) => {
+      name28(ctx, 'Failed', 40)
+      line16(ctx, 'Try again.', 84)
+      hint12(ctx, 'Tap: retry · 2× tap: exit', 252)
+    })
   } finally {
     busy = false
   }
@@ -305,6 +413,7 @@ const unsubscribe = bridge.onEvenHubEvent(event => {
     if (capturing) {
       // Best effort: close the mic before exiting.
       capturing = false
+      window.clearInterval(pulseTimer)
       bridge.audioControl(false).catch(() => {})
     }
     bridge.shutDownPageContainer(1)
@@ -324,7 +433,7 @@ const unsubscribe = bridge.onEvenHubEvent(event => {
       || sysType === OsEventTypeList.SCROLL_BOTTOM_EVENT || textType === OsEventTypeList.SCROLL_BOTTOM_EVENT) {
     if (view === 'card' && card) {
       cardPage = cardPage === 0 ? 1 : 0
-      show(cardText(card, cardPage))
+      paintCard()
     }
     return
   }
@@ -338,7 +447,7 @@ const unsubscribe = bridge.onEvenHubEvent(event => {
     } else if (view === 'done') {
       view = 'card'
       cardPage = 0
-      show(card ? cardText(card, 0) : 'Ostler Glance' + EXIT_HINT)
+      paintCard()
     } else {
       if (!card) {
         boot() // boot failed earlier (e.g. blip during reload): retry it
