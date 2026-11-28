@@ -52,6 +52,10 @@ the Day 4 zero-prompt recall card (`GET /v1/next-card`).
 - **Harriet Vale** — journalist at *the Courier* (both fictional). She
   appears only in the demo video's cold-open: the live catch of a true
   first meeting. She is not part of Henry's calendar or promise ledger.
+- The demo film's wearer is voiced as "Andy Massey" — the
+  builder-owner (his name is already public on the repo). The
+  canonical fictional wearer remains Henry Ashworth; no fixture
+  changes.
 
 ## Recall triggers used in the demo
 
