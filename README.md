@@ -8,7 +8,7 @@ meeting, and recall it the next time you meet them.
 
 "Names are everyone's nemesis. Ostler Glance never forgets one."
 
-## The demo (frames from the recorded video)
+## The demo (G2 display, captured on the Even simulator)
 
 Live catch of a first meeting, held on screen:
 
