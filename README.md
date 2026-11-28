@@ -14,9 +14,9 @@ Live catch of a first meeting, held on screen:
 
 ![Caught name: Harriet Vale — a first meeting, caught mid-introduction](shots/catch-harriet-vale.png)
 
-The promise ledger — what you owe, how long it's been open:
+The promise ledger — what you owe, with absolute dates:
 
-![Promise ledger: "you owe: Talk abstract (23d)"](shots/promise-ledger.png)
+![Promise ledger: "→ you owe: Talk abstract — DUE 14 NOV"](shots/promise-ledger.png)
 
 ## Architecture (this week)
 
